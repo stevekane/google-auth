@@ -38,14 +38,15 @@ var server = http.createServer(app).listen(app.get('port'), function(){
 });
 io = io.listen(server);
 io.set('log level', 2);
+
 function user(name){
-  this.uuid = new uuid.v4();
+  this.uuid = uuid.v4();
   this.name = name;
 };
 
 function idea(content, killRating, owner, vote)
 {
-  this.uuid = new uuid.v4();
+  this.uuid = uuid.v4();
   this.content = content;
   this.killRating = killRating;
   this.owner = owner;
@@ -61,18 +62,34 @@ io.sockets.on('connection', function (socket) {
 
 	// when the client emits 'sendchat', this listens and executes
 	socket.on('loginVerify', function (username) {
-    console.log(username, " is trying to connect");
-    for ( var i = 0; i <= userlist.length; i++)
-      if (username === userlist[i])
-        io.sockets.emit('invalidUser');
-      else
-        var newUser = new user(username);
-        socket.uuid = newUser.uuid;
-        userlist[socket.uuid] = username;
-        io.sockets.emit('validUser', userlist, idealist);
+    var userlength = userlist.length;
+    var foundUser = false;
+    console.log(username, " is trying to connect", "USERLIST: ", userlist);
+    for ( var i = 0; i < userlength; i++)
+      if (username === userlist[i]){
+        foundUser = true;
+        break;}
+
+    if (foundUser){
+      console.log("invalid");
+      io.sockets.emit('invalidUser');}
+    else{
+      console.log("valid");
+      var newUser = new user(username);
+      console.log(newUser);
+      console.log("ID: ", newUser.uuid);
+      socket.uuid = newUser.uuid;
+      userlist.push(username);
+      io.sockets.emit('validUser', userlist, idealist);}
         //send valid user confirmation, list of connected users, list of all ideas
 	});
   
+  socket.on('submitIdea', function(newidea){
+    console.log("Got a new idea!");
+    var newIdea = new idea(newidea.content, newidea.killRating, newidea.owner);
+    newIdea.isDead = false;
+    io.sockets.emit('newIdeaCreated', newIdea);    
+  });
   
 	// when the user disconnects.. perform this
 	socket.on('disconnect', function(){

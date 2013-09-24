@@ -34,7 +34,13 @@ Ideabox.LoginRoute = Ideabox.SocketRoute.extend()
     
 Ideabox.IdeaboxRoute = Ideabox.SocketRoute.extend()
 
-Ideabox.UserController = Ember.ObjectController.extend()
+Ideabox.UserController = Ember.ObjectController.extend
+
+  redirectOnUserChange: (->
+    user = @get "content"
+    target = if user then "ideabox" else "login"
+    @transitionToRoute target
+  ).observes('content')
 
 Ideabox.SocketController = Ember.Controller.extend
 
@@ -67,20 +73,26 @@ Ideabox.SocketController = Ember.Controller.extend
 
 Ideabox.LoginController = Ember.Controller.extend
 
-  needs: ['socket']
+  needs: ['socket', 'user']
 
   socket: alias "controllers.socket.socket"
+
+  user: alias "controllers.user"
   
   actions:
     checkName: (name) ->
-      @transitionToRoute "ideabox"
+      user = @get "user"
       socket = @get "socket"
+
       socket.emit("loginVerify", name, ->
         console.log "login roundtripped"
       )
-      socket.on("validUser", (userList, idealist) ->
-        console.log userList
-        console.log ideaList
+      socket.on("validUser", (data) ->
+        console.log data
+        user.set "content", Ember.Object.create(data.user)
+      )
+      socket.on("invalidUser", ->
+        user.set "content", null
       )
 
   potentialName: ""
@@ -88,6 +100,10 @@ Ideabox.LoginController = Ember.Controller.extend
   resetName: -> @set "potentialName", ""
 
 Ideabox.IdeaboxController = Ember.Controller.extend
+
+  needs: ['user']
+
+  user: alias "controllers.user"
 
   killRatings: [1,2,3,4,5]
 

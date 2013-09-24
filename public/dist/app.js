@@ -46,7 +46,14 @@ Ideabox.LoginRoute = Ideabox.SocketRoute.extend();
 
 Ideabox.IdeaboxRoute = Ideabox.SocketRoute.extend();
 
-Ideabox.UserController = Ember.ObjectController.extend();
+Ideabox.UserController = Ember.ObjectController.extend({
+  redirectOnUserChange: (function() {
+    var target, user;
+    user = this.get("content");
+    target = user ? "ideabox" : "login";
+    return this.transitionToRoute(target);
+  }).observes('content')
+});
 
 Ideabox.SocketController = Ember.Controller.extend({
   socket: null,
@@ -74,19 +81,23 @@ Ideabox.SocketController = Ember.Controller.extend({
 });
 
 Ideabox.LoginController = Ember.Controller.extend({
-  needs: ['socket'],
+  needs: ['socket', 'user'],
   socket: alias("controllers.socket.socket"),
+  user: alias("controllers.user"),
   actions: {
     checkName: function(name) {
-      var socket;
-      this.transitionToRoute("ideabox");
+      var socket, user;
+      user = this.get("user");
       socket = this.get("socket");
       socket.emit("loginVerify", name, function() {
         return console.log("login roundtripped");
       });
-      return socket.on("validUser", function(userList, idealist) {
-        console.log(userList);
-        return console.log(ideaList);
+      socket.on("validUser", function(data) {
+        console.log(data);
+        return user.set("content", Ember.Object.create(data.user));
+      });
+      return socket.on("invalidUser", function() {
+        return user.set("content", null);
       });
     }
   },
@@ -97,6 +108,8 @@ Ideabox.LoginController = Ember.Controller.extend({
 });
 
 Ideabox.IdeaboxController = Ember.Controller.extend({
+  needs: ['user'],
+  user: alias("controllers.user"),
   killRatings: [1, 2, 3, 4, 5],
   killValue: null,
   resetKillValue: function() {

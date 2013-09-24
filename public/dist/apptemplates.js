@@ -16,10 +16,14 @@ helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
 Ember.TEMPLATES["ideabox"] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
 this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
-  var buffer = '', stack1, hashContexts, hashTypes, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression;
+  var buffer = '', stack1, hashTypes, hashContexts, options, escapeExpression=this.escapeExpression, helperMissing=helpers.helperMissing;
 
 
-  data.buffer.push("<div class=\"hero-unit\">\n  <h1>Idea Box!</h1>\n\n  <form class=\"horizontal\">\n    <fieldset>\n      ");
+  data.buffer.push("<h1>Welcome ");
+  hashTypes = {};
+  hashContexts = {};
+  data.buffer.push(escapeExpression(helpers._triageMustache.call(depth0, "user.name", {hash:{},contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
+  data.buffer.push("</h1>\n<div class=\"hero-unit\">\n  <h1>Idea Box!</h1>\n\n  <form class=\"horizontal\">\n    <fieldset>\n      ");
   hashContexts = {'rows': depth0,'value': depth0};
   hashTypes = {'rows': "INTEGER",'value': "ID"};
   options = {hash:{

@@ -11,7 +11,7 @@ module.exports = (grunt) ->
     handlebarsVersion: "handlebars-1.0.0.js"
 
     #connect server settings
-    port: 1234
+    port: 3000
     host: '0.0.0.0'
 
     #coffee files and outputted JS

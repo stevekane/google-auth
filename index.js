@@ -37,7 +37,7 @@ var server = http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));
 });
 io = io.listen(server);
-
+io.set('log level', 2);
 function user(name){
   this.uuid = new uuid.v4();
   this.name = name;
@@ -54,6 +54,8 @@ function idea(content, killRating, owner, vote)
 
 
 var userlist = [];
+idealist = [];
+
 
 io.sockets.on('connection', function (socket) {
 
@@ -67,19 +69,19 @@ io.sockets.on('connection', function (socket) {
         var newUser = new user(username);
         socket.uuid = newUser.uuid;
         userlist[socket.uuid] = username;
-        io.sockets.emit('validUser');
+        io.sockets.emit('validUser', userlist, idealist);
         //TODO: will also emit the list of Idea objects
 	});
-
-
+  
+  
 	// when the user disconnects.. perform this
 	socket.on('disconnect', function(){
 		// remove the username from global usernames list
     user = userlist[socket.uuid];
 		delete userlist[socket.uuid];
 		// update list of users in chat, client-side
-		io.sockets.emit('updateusers', userlist);
+		io.sockets.emit('updateUsers', userlist);
 		// echo globally that this client has left
-		socket.broadcast.emit('updatechat', 'SERVER', user + ' has disconnected');
+		socket.broadcast.emit('userDisconnet', 'SERVER', user + ' has disconnected');
 	});
 });

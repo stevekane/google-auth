@@ -81,8 +81,12 @@ Ideabox.LoginController = Ember.Controller.extend({
       var socket;
       this.transitionToRoute("ideabox");
       socket = this.get("socket");
-      return socket.emit("loginVerify", name, function() {
+      socket.emit("loginVerify", name, function() {
         return console.log("login roundtripped");
+      });
+      return socket.on("validUser", function(userList, idealist) {
+        console.log(userList);
+        return console.log(ideaList);
       });
     }
   },

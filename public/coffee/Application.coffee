@@ -78,6 +78,10 @@ Ideabox.LoginController = Ember.Controller.extend
       socket.emit("loginVerify", name, ->
         console.log "login roundtripped"
       )
+      socket.on("validUser", (userList, idealist) ->
+        console.log userList
+        console.log ideaList
+      )
 
   potentialName: ""
 

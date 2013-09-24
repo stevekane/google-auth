@@ -42,11 +42,24 @@ Ideabox.IndexRoute = Ideabox.SocketRoute.extend({
   }
 });
 
-Ideabox.LoginRoute = Ideabox.SocketRoute.extend();
+Ideabox.LoginRoute = Ideabox.SocketRoute.extend({
+  activate: function() {
+    var userCon;
+    userCon = this.controllerFor("user");
+    if (userCon.get('content') !== null) {
+      return this.replaceWith("ideabox");
+    }
+  }
+});
 
 Ideabox.IdeaboxRoute = Ideabox.SocketRoute.extend();
 
 Ideabox.UserController = Ember.ObjectController.extend({
+  actions: {
+    logout: function() {
+      return this.set("content", null);
+    }
+  },
   redirectOnUserChange: (function() {
     var target, user;
     user = this.get("content");
@@ -89,16 +102,12 @@ Ideabox.LoginController = Ember.Controller.extend({
       var socket, user;
       user = this.get("user");
       socket = this.get("socket");
-      socket.emit("loginVerify", name, function() {
-        return console.log("login roundtripped");
-      });
-      socket.on("validUser", function(data) {
-        console.log(data);
+      socket.emit("loginVerify", name).on("validUser", function(data) {
         return user.set("content", Ember.Object.create(data.user));
-      });
-      return socket.on("invalidUser", function() {
+      }).on("invalidUser", function() {
         return user.set("content", null);
       });
+      return this.resetName();
     }
   },
   potentialName: "",

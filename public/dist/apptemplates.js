@@ -23,7 +23,13 @@ helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
   hashTypes = {};
   hashContexts = {};
   data.buffer.push(escapeExpression(helpers._triageMustache.call(depth0, "user.name", {hash:{},contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
-  data.buffer.push("</h1>\n<div class=\"hero-unit\">\n  <h1>Idea Box!</h1>\n\n  <form class=\"horizontal\">\n    <fieldset>\n      ");
+  data.buffer.push("</h1>\n\n<div class=\"btn btn-alert\" ");
+  hashContexts = {'target': depth0};
+  hashTypes = {'target': "STRING"};
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "logout", {hash:{
+    'target': ("user")
+  },contexts:[depth0],types:["STRING"],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
+  data.buffer.push(">\n  Logout\n</div>\n\n<div class=\"hero-unit\">\n  <h1>Idea Box!</h1>\n\n  <form class=\"horizontal\">\n    <fieldset>\n      ");
   hashContexts = {'rows': depth0,'value': depth0};
   hashTypes = {'rows': "INTEGER",'value': "ID"};
   options = {hash:{

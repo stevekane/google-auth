@@ -1,0 +1,10 @@
+Overview
+
+  Have a thought
+  Write it down and hit enter
+  assign a kill value (1-5)
+  Play animation showing your idea going out to everyone else
+  Send the idea and rating to the server over websocket
+  Store the idea in the database
+  Broadcast the idea out to everyone else
+        

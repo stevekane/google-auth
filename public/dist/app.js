@@ -1,4 +1,8 @@
 minispade.register('Application.js', function() {
+var alias;
+
+alias = Ember.computed.alias;
+
 window.Ideabox = Ember.Application.create();
 
 Ideabox.Router.map(function() {
@@ -28,8 +32,12 @@ Ideabox.IndexRoute = Ember.Route.extend({
 });
 
 Ideabox.LoginRoute = Ember.Route.extend({
-  activate: function() {
-    return console.log("you are in the login route");
+  actions: function() {
+    return {
+      willTransition: function(transition) {
+        return console.log("you are transitionining");
+      }
+    };
   }
 });
 
@@ -37,22 +45,21 @@ Ideabox.IdeaboxRoute = Ember.Route.extend();
 
 Ideabox.LoginController = Ember.Controller.extend({
   needs: ['socket'],
-  socket: Ember.alias("controllers.socket.socket"),
+  socket: alias("controllers.socket.socket"),
   actions: {
     checkName: function(name) {
-      var socket;
-      socket = this.get("socket");
-      return socket.emit("login", {
-        name: name
-      }, function() {
-        return console.log("login roundtripped");
-      });
+      return this.transitionToRoute("ideabox");
     }
   },
   potentialName: "",
   resetName: function() {
     return this.set("potentialName", "");
   }
+});
+
+Ideabox.IdeaboxController = Ember.Controller.extend({
+  killRatings: [1, 2, 3, 4, 5],
+  killValue: null
 });
 
 });

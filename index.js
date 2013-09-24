@@ -51,7 +51,7 @@ function idea(content, killRating, owner, vote)
 
 var userlist = [];
 
-io.sockets.on('connection', function (socket) {
+io.socket.on('connection', function (socket) {
 
 	// when the client emits 'sendchat', this listens and executes
 	socket.on('loginVerify', function (username) {

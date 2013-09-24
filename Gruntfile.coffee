@@ -131,3 +131,15 @@ module.exports = (grunt) ->
       'watch'
     ]
   )
+
+  grunt.registerTask('noserver',
+    [
+      'clean',
+      'coffee',
+      'minispade',
+      'emberTemplates',
+      'sass',
+      'open:localhost'
+      'watch'
+    ]
+  )

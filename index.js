@@ -80,7 +80,7 @@ io.sockets.on('connection', function (socket) {
       console.log("ID: ", newUser.uuid);
       socket.uuid = newUser.uuid;
       userlist.push(username);
-      io.sockets.emit('validUser', userlist, idealist);}
+      io.sockets.emit('validUser', {user:newUser, userlist:userlist, idealist:idealist});}
         //send valid user confirmation, list of connected users, list of all ideas
 	});
   

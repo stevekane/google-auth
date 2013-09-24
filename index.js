@@ -29,10 +29,14 @@ app.get('/', function ( req, res ) {
   res.sendfile(__dirname + "/index.html");
 });
 
-app.listen(app.get('port'), function () {
-  console.log('express listening on port ' + app.get('port'));
+// app.listen(app.get('port'), function () {
+  // console.log('express listening on port ' + app.get('port'));
+// });
+
+var server = http.createServer(app).listen(app.get('port'), function(){
+  console.log('Express server listening on port ' + app.get('port'));
 });
-io.listen(app);
+io = io.listen(server);
 
 function user(name){
   this.uuid = new uuid.v4();
@@ -51,7 +55,7 @@ function idea(content, killRating, owner, vote)
 
 var userlist = [];
 
-io.socket.on('connection', function (socket) {
+io.sockets.on('connection', function (socket) {
 
 	// when the client emits 'sendchat', this listens and executes
 	socket.on('loginVerify', function (username) {
@@ -67,19 +71,6 @@ io.socket.on('connection', function (socket) {
         //TODO: will also emit the list of Idea objects
 	});
 
-	// when the client emits 'adduser', this listens and executes
-	socket.on('adduser', function(username){
-		// we store the username in the socket session for this client
-		socket.username = username;
-		// add the client's username to the global list
-		usernames[username] = username;
-		// echo to client they've connected
-		socket.emit('updatechat', 'SERVER', 'you have connected');
-		// echo globally (all clients) that a person has connected
-		socket.broadcast.emit('updatechat', 'SERVER', username + ' has connected');
-		// update the list of users in chat, client-side
-		io.sockets.emit('updateusers', usernames);
-	});
 
 	// when the user disconnects.. perform this
 	socket.on('disconnect', function(){

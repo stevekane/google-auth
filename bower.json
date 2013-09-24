@@ -1,0 +1,16 @@
+{
+  "name": "agentrun-front-end",
+  "version": "0.0.0",
+  "main": "public/vendor/",
+  "dependencies": {
+    "ember": "latest",
+    "ember-model": "latest",
+    "minispade": "git://github.com/wycats/minispade.git",
+    "moment": "latest",
+    "emblem": "latest",
+    "chai": "latest",
+    "sinon": "latest",
+    "reset-css": "~2.0.20110126",
+    "ember-mocha-adapter": "teddyzeenny/ember-mocha-adapter#0.1.2"
+  }
+}

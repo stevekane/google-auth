@@ -1,0 +1,9 @@
+{
+  "name": "minispade",
+  "version": "0.0.0",
+  "commit": "7d5c876941ef6d88813a4ef419a5ada2ad2b72ff",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/wycats/minispade.git"
+  }
+}

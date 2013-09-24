@@ -6,7 +6,6 @@ module.exports = (grunt) ->
 
     #vendor directory and specific dependencies
     vendor: "public/vendor"
-    emblemVersion: "emblem.js"
     emberVersion: "ember-latest.js"
     jqueryVersion: "jquery-2.0.3.js"
     handlebarsVersion: "handlebars-1.0.0.js"
@@ -23,9 +22,6 @@ module.exports = (grunt) ->
     #handlebars files
     hbDir: "public/handlebars"
     hbCompiled: "apptemplates.js"
-
-    emblemDir: "public/emblem"
-    emblemCompiled: "emblemtemplates.js"
 
     #sass files
     sassDir: "public/sass"
@@ -79,19 +75,6 @@ module.exports = (grunt) ->
         files:
           '<%= distDir %>/<%= sassCompiled %>': '<%= sassDir %>/<%= mainSassFile %>'
 
-    emblem:
-      compile:
-        options:
-          root: "<%= emblemDir %>/"
-          dependencies:
-            jquery: '<%= vendor %>/<%= jqueryVersion %>'
-            ember: '<%= vendor %>/<%= emberVersion %>'
-            emblem: '<%= vendor %>/<%= emblemVersion %>'
-            handlebars: '<%= vendor %>/<%= handlebarsVersion %>'
-
-        files:
-          "<%= distDir%>/<%= emblemCompiled %>": "<%= emblemDir %>/**/*.emblem"
-
     emberTemplates:
       compile:
         options:
@@ -115,12 +98,6 @@ module.exports = (grunt) ->
         options:
           livereload: true
 
-      emblem:
-        files: ['<%= emblemDir%>/**/*.emblem']
-        tasks: ['emblem']
-        options:
-          livereload: true
-
       handlebars:
         files: ['<%= hbDir%>/**/*.handlebars']
         tasks: ['emberTemplates']
@@ -139,7 +116,6 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks('grunt-ember-templates')
   grunt.loadNpmTasks('grunt-contrib-watch')
   grunt.loadNpmTasks('grunt-contrib-coffee')
-  grunt.loadNpmTasks('grunt-emblem')
   grunt.loadNpmTasks('grunt-contrib-connect')
   grunt.loadNpmTasks('grunt-open')
 
@@ -148,8 +124,7 @@ module.exports = (grunt) ->
       'clean',
       'coffee',
       'minispade',
-      #'emberTemplates',
-      'emblem',
+      'emberTemplates',
       'sass',
       'connect',
       'open:localhost'

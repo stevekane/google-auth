@@ -1,3 +1,3 @@
-Stylecore.Router.map ->
-  @resource "components", ->
-    @resource "component"
+Ideabox.Router.map ->
+  @resource "ideabox"
+  @resource "graveyard"

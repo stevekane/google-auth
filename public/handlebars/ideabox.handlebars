@@ -1,0 +1,15 @@
+<div class="hero-unit">
+  <h1>Idea Box!</h1>
+
+  <form class="horizontal">
+    <fieldset>
+      {{textarea rows=2 value=idea}}
+      {{view "Ember.Select" 
+        contentBinding="killRatings"
+        selectionBinding="killValue"}}
+      <div class="btn" {{action "checkName" potentialName}}>
+        Send Idea
+      </div>
+    </fieldset>
+  </form>
+</div>

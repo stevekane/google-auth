@@ -11,6 +11,7 @@
     "chai": "latest",
     "sinon": "latest",
     "reset-css": "~2.0.20110126",
-    "ember-mocha-adapter": "teddyzeenny/ember-mocha-adapter#0.1.2"
+    "ember-mocha-adapter": "teddyzeenny/ember-mocha-adapter#0.1.2",
+    "socket.io-client": "~0.9.16"
   }
 }

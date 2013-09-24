@@ -1,9 +1,9 @@
-<h2>Let's log in!</h2>
-
+<h1>Let's log in!</h1>
 <form>
   <fieldset>
-    <legend>Choose a name!</legend>
-    {{input type=text value=potentialName}}
-    <div class="btn" {{action "checkName" potentialName}}>Select</div>
+    {{input value=potentialName}}
+    <div class="btn" {{action "checkName" potentialName}}>
+      Check Name
+    </div>
   </fieldset>
 </form>

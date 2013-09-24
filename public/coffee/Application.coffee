@@ -6,32 +6,32 @@ Ideabox.Router.map ->
   @resource "login"
   @resource "ideabox"
 
+Ideabox.SocketRoute = Ember.Route.extend
+
+  actions:
+    willTransition: (transition) ->
+      socketController = @controllerFor "socket"
+
+#Index route is used to connect to the server over websocket
+Ideabox.IndexRoute = Ideabox.SocketRoute.extend
+
+   redirect: -> @replaceWith "login"
+
+Ideabox.LoginRoute = Ideabox.SocketRoute.extend()
+    
+Ideabox.IdeaboxRoute = Ideabox.SocketRoute.extend()
+
 Ideabox.SocketController = Ember.Controller.extend
 
   init: ->
     self = @
     socket = io.connect("localhost:3000")
-    console.log "yay"
     socket.on("connect", ->
       self.set "socket", socket
     )
     socket.on("disconnect", ->
       self.set "socket", null
     )
-
-#Index route is used to connect to the server over websocket
-Ideabox.IndexRoute = Ember.Route.extend
-
-   redirect: -> @replaceWith "login"
-
-Ideabox.LoginRoute = Ember.Route.extend
-  
-  actions: ->
-    
-    willTransition: (transition) ->
-      console.log "you are transitionining"
-
-Ideabox.IdeaboxRoute = Ember.Route.extend()
 
   
 Ideabox.LoginController = Ember.Controller.extend
@@ -43,10 +43,10 @@ Ideabox.LoginController = Ember.Controller.extend
   actions:
     checkName: (name) ->
       @transitionToRoute "ideabox"
-      #socket = @get "socket"
-      #socket.emit("login", {name: name}, () ->
-      #  console.log "login roundtripped" 
-      #)
+      socket = @get "socket"
+      socket.emit("loginVerify", name, () ->
+        console.log "login roundtripped"
+      )
 
   potentialName: ""
 
@@ -57,3 +57,5 @@ Ideabox.IdeaboxController = Ember.Controller.extend
   killRatings: [1,2,3,4,5]
 
   killValue: null
+
+  resetKillValue: -> @set "killValue", null

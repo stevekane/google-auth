@@ -10,12 +10,30 @@ Ideabox.Router.map(function() {
   return this.resource("ideabox");
 });
 
+Ideabox.SocketRoute = Ember.Route.extend({
+  actions: {
+    willTransition: function(transition) {
+      var socketController;
+      return socketController = this.controllerFor("socket");
+    }
+  }
+});
+
+Ideabox.IndexRoute = Ideabox.SocketRoute.extend({
+  redirect: function() {
+    return this.replaceWith("login");
+  }
+});
+
+Ideabox.LoginRoute = Ideabox.SocketRoute.extend();
+
+Ideabox.IdeaboxRoute = Ideabox.SocketRoute.extend();
+
 Ideabox.SocketController = Ember.Controller.extend({
   init: function() {
     var self, socket;
     self = this;
     socket = io.connect("localhost:3000");
-    console.log("yay");
     socket.on("connect", function() {
       return self.set("socket", socket);
     });
@@ -25,30 +43,17 @@ Ideabox.SocketController = Ember.Controller.extend({
   }
 });
 
-Ideabox.IndexRoute = Ember.Route.extend({
-  redirect: function() {
-    return this.replaceWith("login");
-  }
-});
-
-Ideabox.LoginRoute = Ember.Route.extend({
-  actions: function() {
-    return {
-      willTransition: function(transition) {
-        return console.log("you are transitionining");
-      }
-    };
-  }
-});
-
-Ideabox.IdeaboxRoute = Ember.Route.extend();
-
 Ideabox.LoginController = Ember.Controller.extend({
   needs: ['socket'],
   socket: alias("controllers.socket.socket"),
   actions: {
     checkName: function(name) {
-      return this.transitionToRoute("ideabox");
+      var socket;
+      this.transitionToRoute("ideabox");
+      socket = this.get("socket");
+      return socket.emit("loginVerify", name, function() {
+        return console.log("login roundtripped");
+      });
     }
   },
   potentialName: "",
@@ -59,7 +64,10 @@ Ideabox.LoginController = Ember.Controller.extend({
 
 Ideabox.IdeaboxController = Ember.Controller.extend({
   killRatings: [1, 2, 3, 4, 5],
-  killValue: null
+  killValue: null,
+  resetKillValue: function() {
+    return this.set("killValue", null);
+  }
 });
 
 });

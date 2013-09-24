@@ -70,7 +70,7 @@ io.sockets.on('connection', function (socket) {
         socket.uuid = newUser.uuid;
         userlist[socket.uuid] = username;
         io.sockets.emit('validUser', userlist, idealist);
-        //TODO: will also emit the list of Idea objects
+        //send valid user confirmation, list of connected users, list of all ideas
 	});
   
   

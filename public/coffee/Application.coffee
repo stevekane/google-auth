@@ -7,24 +7,36 @@ Ideabox.Router.map ->
   @resource "login"
   @resource "ideabox"
 
-checkForSocket = (context, transition) ->
-  sockCon = context.controllerFor "socket"
-  socket = sockCon.get "socket"
-  if socket is null
-    if transition then transition.abort()
-    context.transitionTo "reconnect"
+Ideabox.ApplicationRoute = Ember.Route.extend
+
+  actions:
+    logout: ->
+      @controllerFor("user").set("content", null)
+      @transitionTo "login"
+
+Ideabox.AuthRoute = Ember.Mixin.create
+
+  activate: ->
+    @_super.apply @, arguments
+    if @controllerFor("user").get("content") is null
+      @replaceWith "login"
 
 Ideabox.SocketRoute = Ember.Route.extend
 
-  activate: ->
-    checkForSocket(@)
+  actions:
+    willTransition: (transition) ->
+      socket = @controllerFor("socket").get('socket')
+      if socket is null
+        if transition then transition.abort()
+        context.transitionTo "reconnect"
+
+Ideabox.ReconnectRoute = Ember.Route.extend
 
   actions:
     willTransition: (transition) ->
-      checkForSocket(@, transition)
-
-Ideabox.ReconnectRoute = Ember.Route.extend()
-
+      connected = @controllerFor("socket").get('connected')
+      unless connected then transition.abort()
+      
 #Index route is used to connect to the server over websocket
 Ideabox.IndexRoute = Ideabox.SocketRoute.extend
 
@@ -32,80 +44,83 @@ Ideabox.IndexRoute = Ideabox.SocketRoute.extend
 
 Ideabox.LoginRoute = Ideabox.SocketRoute.extend
 
-  activate: ->
-    userCon = @controllerFor "user"
-    if userCon.get('content') isnt null
-      @replaceWith "ideabox"
-    
-Ideabox.IdeaboxRoute = Ideabox.SocketRoute.extend()
-
-Ideabox.UserController = Ember.ObjectController.extend
-
   actions:
-    logout: ->
-      @set "content", null
+    login: (user) ->
+      @controllerFor("user").set "content", user
+      @transitionTo "ideabox"
 
-  redirectOnUserChange: (->
-    user = @get "content"
-    target = if user then "ideabox" else "login"
-    @transitionToRoute target
-  ).observes('content')
+Ideabox.IdeaboxRoute = Ideabox.SocketRoute.extend Ideabox.AuthRoute,
+
+  test: "whatever"
+
+#we define this to initiate the socket controller
+Ideabox.ApplicationController = Ember.Controller.extend
+
+  needs: ['socket']
+
+  init: ->
+    @_super.apply @, arguments
+    socketController = @get('controllers.socket')
+
+Ideabox.UserController = Ember.ObjectController.extend()
+
+#utility for re-establishing connection
+_establishConnection = (context) ->
+  ->
+    context.set "connected", false
+    context.transitionToRoute "reconnect"
+
+#utility for logging in
+_handleConnection = (context) ->
+  ->
+    context.set "connected", true
+    context.transitionToRoute "login"
 
 Ideabox.SocketController = Ember.Controller.extend
 
   socket: null
 
-  establishConnection: (->
+  connected: false
+
+  init: ->
+    @_super.apply @, arguments
     socket = @get("socket")
     self = @
-    if socket isnt null then return
-    
-    socket = io.connect("//localhost:3000")
-      .on("connect", ->
-        self.transitionToRoute "login"
-        self.set "socket", socket
-      )
-      .on("disconnect", ->
-        self.transitionToRoute "reconnect"
-        self.set "socket", null
-      )
-      .on("error", ->
-        self.transitionToRoute "reconnect"
-        self.set "socket", null
-      )
-      .on("connect_failed", ->
-        self.transitionToRoute "reconnect"
-        self.set "socket", null
-      )
 
-  ).observes('socket').on('init')
+    socket = io.connect("//localhost:3000")
+      .on("connect", _handleConnection(self))
+      .on("disconnect", _establishConnection(self))
+      .on("error", _establishConnection(self))
+      .on("connect_failed", _establishConnection(self))
+
+    @set "socket", socket
 
 Ideabox.LoginController = Ember.Controller.extend
 
-  needs: ['socket', 'user']
+  needs: ['socket']
 
   socket: alias "controllers.socket.socket"
 
-  user: alias "controllers.user"
-  
   actions:
-    checkName: (name) ->
-      user = @get "user"
+    attemptLogin: (name) ->
       socket = @get "socket"
+      self = @
 
       socket
-        .emit("loginVerify", name)
-        .on("validUser", (data) ->
-          user.set "content", Ember.Object.create(data.user)
+        .emit("login", name, (error, user) ->
+          if error
+            alert(error)
+            resetName()
+          else
+            newUser = Ember.Object.create(user)
+            self.send "login", newUser
+          self.resetName()
         )
-        .on("invalidUser", ->
-          user.set "content", null
-        )
-      @resetName()
 
   potentialName: ""
 
-  resetName: -> @set "potentialName", ""
+  resetName: ->
+    @set "potentialName", ""
 
 Ideabox.IdeaboxController = Ember.Controller.extend
 
@@ -115,4 +130,5 @@ Ideabox.IdeaboxController = Ember.Controller.extend
   killRatings: [1,2,3,4,5]
   killValue: null
 
-  resetKillValue: -> @set "killValue", null
+  resetKillValue: ->
+    @set "killValue", null

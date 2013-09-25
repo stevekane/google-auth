@@ -1,10 +1,14 @@
 var path = require('path')
-  , express = require('express')
   , http = require('http')
   , fs = require('fs')
-  , io = require('socket.io');
-var uuid = require('node-uuid');
-var app = express();
+  , express = require('express')
+  , _ = require('lodash')
+  , uuid = require('node-uuid')
+  , app = express()
+  , server = http.createServer(app)
+  , io = require('socket.io').listen(server);
+
+io.set('log level', 2);
 
 // all environments
 app.set('port', process.env.PORT || 3000);
@@ -29,23 +33,12 @@ app.get('/', function ( req, res ) {
   res.sendfile(__dirname + "/index.html");
 });
 
-// app.listen(app.get('port'), function () {
-  // console.log('express listening on port ' + app.get('port'));
-// });
-
-var server = http.createServer(app).listen(app.get('port'), function(){
-  console.log('Express server listening on port ' + app.get('port'));
-});
-io = io.listen(server);
-io.set('log level', 2);
-
-function user(name){
+function User (name) {
   this.uuid = uuid.v4();
   this.name = name;
 };
 
-function idea(content, killRating, owner, vote)
-{
+function Idea (content, killRating, owner, vote) {
   this.uuid = uuid.v4();
   this.content = content;
   this.killRating = killRating;
@@ -53,44 +46,26 @@ function idea(content, killRating, owner, vote)
   this.vote = vote;
 };
 
-
 var userlist = [];
 idealist = [];
 
-
 io.sockets.on('connection', function (socket) {
 
+  console.log("connection attempted");
 	// when the client emits 'sendchat', this listens and executes
-	socket.on('loginVerify', function (username) {
-    var userlength = userlist.length;
-    var foundUser = false;
-    console.log(username, " is trying to connect", "USERLIST: ", userlist);
-    for ( var i = 0; i < userlength; i++)
-      if (username === userlist[i]){
-        foundUser = true;
-        break;}
+	socket.on('login', function (username, fn) {
+    var newUser;
 
-    if (foundUser){
-      console.log("invalid");
-      io.sockets.emit('invalidUser');}
-    else{
-      console.log("valid");
-      var newUser = new user(username);
-      console.log(newUser);
-      console.log("ID: ", newUser.uuid);
-      socket.uuid = newUser.uuid;
-      userlist.push(username);
-      io.sockets.emit('validUser', {user:newUser, userlist:userlist, idealist:idealist});}
-        //send valid user confirmation, list of connected users, list of all ideas
-	});
-  
-  socket.on('submitIdea', function(newidea){
-    console.log("Got a new idea!");
-    var newIdea = new idea(newidea.content, newidea.killRating, newidea.owner);
-    newIdea.isDead = false;
-    io.sockets.emit('newIdeaCreated', newIdea);    
+    //check if this username is available
+    if (_.contains(userlist, username)) {
+      fn("username already taken", null);
+    } else {
+      newUser = new User(username);
+      userlist.push(newUser)
+      fn(null, {user: newUser}); 
+    }
   });
-  
+
 	// when the user disconnects.. perform this
 	socket.on('disconnect', function(){
 		// remove the username from global usernames list
@@ -99,6 +74,11 @@ io.sockets.on('connection', function (socket) {
 		// update list of users in chat, client-side
 		io.sockets.emit('updateUsers', userlist);
 		// echo globally that this client has left
-		socket.broadcast.emit('userDisconnet', 'SERVER', user + ' has disconnected');
+		socket.broadcast.emit('userDisconnect', 'SERVER', user + ' has disconnected');
 	});
+});
+
+//start the server
+server.listen(app.get('port'), function () {
+  console.log('server on', app.get('port'));
 });

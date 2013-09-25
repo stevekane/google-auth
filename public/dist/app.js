@@ -1,5 +1,5 @@
 minispade.register('Application.js', function() {
-var alias, checkForSocket;
+var alias, _establishConnection, _handleConnection;
 
 alias = Ember.computed.alias;
 
@@ -11,30 +11,50 @@ Ideabox.Router.map(function() {
   return this.resource("ideabox");
 });
 
-checkForSocket = function(context, transition) {
-  var sockCon, socket;
-  sockCon = context.controllerFor("socket");
-  socket = sockCon.get("socket");
-  if (socket === null) {
-    if (transition) {
-      transition.abort();
-    }
-    return context.transitionTo("reconnect");
-  }
-};
-
-Ideabox.SocketRoute = Ember.Route.extend({
-  activate: function() {
-    return checkForSocket(this);
-  },
+Ideabox.ApplicationRoute = Ember.Route.extend({
   actions: {
-    willTransition: function(transition) {
-      return checkForSocket(this, transition);
+    logout: function() {
+      this.controllerFor("user").set("content", null);
+      return this.transitionTo("login");
     }
   }
 });
 
-Ideabox.ReconnectRoute = Ember.Route.extend();
+Ideabox.AuthRoute = Ember.Mixin.create({
+  activate: function() {
+    this._super.apply(this, arguments);
+    if (this.controllerFor("user").get("content") === null) {
+      return this.replaceWith("login");
+    }
+  }
+});
+
+Ideabox.SocketRoute = Ember.Route.extend({
+  actions: {
+    willTransition: function(transition) {
+      var socket;
+      socket = this.controllerFor("socket").get('socket');
+      if (socket === null) {
+        if (transition) {
+          transition.abort();
+        }
+        return context.transitionTo("reconnect");
+      }
+    }
+  }
+});
+
+Ideabox.ReconnectRoute = Ember.Route.extend({
+  actions: {
+    willTransition: function(transition) {
+      var connected;
+      connected = this.controllerFor("socket").get('connected');
+      if (!connected) {
+        return transition.abort();
+      }
+    }
+  }
+});
 
 Ideabox.IndexRoute = Ideabox.SocketRoute.extend({
   redirect: function() {
@@ -43,71 +63,75 @@ Ideabox.IndexRoute = Ideabox.SocketRoute.extend({
 });
 
 Ideabox.LoginRoute = Ideabox.SocketRoute.extend({
-  activate: function() {
-    var userCon;
-    userCon = this.controllerFor("user");
-    if (userCon.get('content') !== null) {
-      return this.replaceWith("ideabox");
+  actions: {
+    login: function(user) {
+      this.controllerFor("user").set("content", user);
+      return this.transitionTo("ideabox");
     }
   }
 });
 
-Ideabox.IdeaboxRoute = Ideabox.SocketRoute.extend();
-
-Ideabox.UserController = Ember.ObjectController.extend({
-  actions: {
-    logout: function() {
-      return this.set("content", null);
-    }
-  },
-  redirectOnUserChange: (function() {
-    var target, user;
-    user = this.get("content");
-    target = user ? "ideabox" : "login";
-    return this.transitionToRoute(target);
-  }).observes('content')
+Ideabox.IdeaboxRoute = Ideabox.SocketRoute.extend(Ideabox.AuthRoute, {
+  test: "whatever"
 });
+
+Ideabox.ApplicationController = Ember.Controller.extend({
+  needs: ['socket'],
+  init: function() {
+    var socketController;
+    this._super.apply(this, arguments);
+    return socketController = this.get('controllers.socket');
+  }
+});
+
+Ideabox.UserController = Ember.ObjectController.extend();
+
+_establishConnection = function(context) {
+  return function() {
+    context.set("connected", false);
+    return context.transitionToRoute("reconnect");
+  };
+};
+
+_handleConnection = function(context) {
+  return function() {
+    context.set("connected", true);
+    return context.transitionToRoute("login");
+  };
+};
 
 Ideabox.SocketController = Ember.Controller.extend({
   socket: null,
-  establishConnection: (function() {
+  connected: false,
+  init: function() {
     var self, socket;
+    this._super.apply(this, arguments);
     socket = this.get("socket");
     self = this;
-    if (socket !== null) {
-      return;
-    }
-    return socket = io.connect("//localhost:3000").on("connect", function() {
-      self.transitionToRoute("login");
-      return self.set("socket", socket);
-    }).on("disconnect", function() {
-      self.transitionToRoute("reconnect");
-      return self.set("socket", null);
-    }).on("error", function() {
-      self.transitionToRoute("reconnect");
-      return self.set("socket", null);
-    }).on("connect_failed", function() {
-      self.transitionToRoute("reconnect");
-      return self.set("socket", null);
-    });
-  }).observes('socket').on('init')
+    socket = io.connect("//localhost:3000").on("connect", _handleConnection(self)).on("disconnect", _establishConnection(self)).on("error", _establishConnection(self)).on("connect_failed", _establishConnection(self));
+    return this.set("socket", socket);
+  }
 });
 
 Ideabox.LoginController = Ember.Controller.extend({
-  needs: ['socket', 'user'],
+  needs: ['socket'],
   socket: alias("controllers.socket.socket"),
-  user: alias("controllers.user"),
   actions: {
-    checkName: function(name) {
-      var socket, user;
-      user = this.get("user");
+    attemptLogin: function(name) {
+      var self, socket;
       socket = this.get("socket");
-      socket.emit("loginVerify", name).on("validUser", function(data) {
-        return user.set("content", Ember.Object.create(data.user));
-      }).on("invalidUser", function() {
-        return user.set("content", null);
+      self = this;
+      return socket.emit("login", name, function(error, user) {
+        var newUser;
+        if (error) {
+          alert(error);
+          resetName();
+        } else {
+          newUser = Ember.Object.create(user);
+          self.send("login", newUser);
+        }
+        return self.resetName();
       });
-      return this.resetName();
     }
   },
   potentialName: "",

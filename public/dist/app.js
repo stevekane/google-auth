@@ -11,14 +11,7 @@ Ideabox.Router.map(function() {
   return this.resource("ideabox");
 });
 
-Ideabox.ApplicationRoute = Ember.Route.extend({
-  actions: {
-    logout: function() {
-      this.controllerFor("user").set("content", null);
-      return this.transitionTo("login");
-    }
-  }
-});
+Ideabox.ApplicationRoute = Ember.Route.extend();
 
 Ideabox.AuthRoute = Ember.Mixin.create({
   activate: function() {
@@ -76,11 +69,20 @@ Ideabox.IdeaboxRoute = Ideabox.SocketRoute.extend(Ideabox.AuthRoute, {
 });
 
 Ideabox.ApplicationController = Ember.Controller.extend({
-  needs: ['socket'],
+  needs: ['socket', 'user'],
+  socket: alias("controllers.socket.socket"),
+  userCon: alias("controllers.user"),
   init: function() {
-    var socketController;
     this._super.apply(this, arguments);
-    return socketController = this.get('controllers.socket');
+    return this.get('controllers.socket');
+  },
+  actions: {
+    logout: function() {
+      var socket, userCon;
+      userCon = this.get("userCon");
+      socket = this.get("socket");
+      return this.transitionTo("login");
+    }
   }
 });
 
@@ -121,13 +123,13 @@ Ideabox.LoginController = Ember.Controller.extend({
       var self, socket;
       socket = this.get("socket");
       self = this;
-      return socket.emit("login", name, function(error, user) {
+      return socket.emit("login", name, function(error, data) {
         var newUser;
         if (error) {
           alert(error);
           resetName();
         } else {
-          newUser = Ember.Object.create(user);
+          newUser = Ember.Object.create(data.user);
           self.send("login", newUser);
         }
         return self.resetName();

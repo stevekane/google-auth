@@ -47,36 +47,53 @@ function Idea (content, killRating, owner, vote) {
 };
 
 var userlist = [];
-idealist = [];
+var idealist = [];
 
-io.sockets.on('connection', function (socket) {
+//login event handler
+function login (username, fn) {
+  var newUser;
 
-  console.log("connection attempted");
-	// when the client emits 'sendchat', this listens and executes
-	socket.on('login', function (username, fn) {
-    var newUser;
+  //check if this username is available
+  if (_.contains(userlist, username)) {
+    fn("username already taken", null);
+  } else {
+    newUser = new User(username);
+    userlist.push(newUser)
+    fn(null, {user: newUser}); 
+  }
+}
 
-    //check if this username is available
-    if (_.contains(userlist, username)) {
-      fn("username already taken", null);
-    } else {
-      newUser = new User(username);
-      userlist.push(newUser)
-      fn(null, {user: newUser}); 
-    }
+//logout event handler
+function logout (username, fn) {
+  //mutate the userlist to remove this username
+  _.remove(userlist, username);
+  fn(null, {message: "user successfully logged out"});
+}
+
+//disconnect event handler
+function disconnect (user, fn) {
+  console.log("disconnect attempted no implementation");
+}
+
+/*
+pairs of event names and the handlers (these are like endpoints)
+By naming convention, please name the handler exactly the same
+as the event name.  this will make it easier to grow 
+*/
+var socketHandlers = [
+  {eventName: "login", handler: login},
+  {eventName: "disconnect", handler: disconnect}
+];
+
+//load the event handlers 
+function loadSocketHandlers (socket) {
+  _.each(socketHandlers, function (handler) {
+    socket.on(handler.eventName, handler.handler);
   });
+}
 
-	// when the user disconnects.. perform this
-	socket.on('disconnect', function(){
-		// remove the username from global usernames list
-    user = userlist[socket.uuid];
-		delete userlist[socket.uuid];
-		// update list of users in chat, client-side
-		io.sockets.emit('updateUsers', userlist);
-		// echo globally that this client has left
-		socket.broadcast.emit('userDisconnect', 'SERVER', user + ' has disconnected');
-	});
-});
+//When a connection is established, load all the socket handlers
+io.sockets.on('connection', loadSocketHandlers)
 
 //start the server
 server.listen(app.get('port'), function () {

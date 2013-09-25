@@ -7,12 +7,7 @@ Ideabox.Router.map ->
   @resource "login"
   @resource "ideabox"
 
-Ideabox.ApplicationRoute = Ember.Route.extend
-
-  actions:
-    logout: ->
-      @controllerFor("user").set("content", null)
-      @transitionTo "login"
+Ideabox.ApplicationRoute = Ember.Route.extend()
 
 Ideabox.AuthRoute = Ember.Mixin.create
 
@@ -56,11 +51,23 @@ Ideabox.IdeaboxRoute = Ideabox.SocketRoute.extend Ideabox.AuthRoute,
 #we define this to initiate the socket controller
 Ideabox.ApplicationController = Ember.Controller.extend
 
-  needs: ['socket']
+  needs: ['socket', 'user']
+
+  socket: alias "controllers.socket.socket"
+
+  userCon: alias "controllers.user"
 
   init: ->
     @_super.apply @, arguments
-    socketController = @get('controllers.socket')
+    @get('controllers.socket')
+
+  actions:
+    logout: ->
+      userCon = @get("userCon")
+      socket = @get("socket")
+      #TODO: HERE FINISH THIS!!!!!!!!!!!!!!!!!!!!
+      @transitionTo "login"
+
 
 Ideabox.UserController = Ember.ObjectController.extend()
 
@@ -107,12 +114,12 @@ Ideabox.LoginController = Ember.Controller.extend
       self = @
 
       socket
-        .emit("login", name, (error, user) ->
+        .emit("login", name, (error, data) ->
           if error
             alert(error)
             resetName()
           else
-            newUser = Ember.Object.create(user)
+            newUser = Ember.Object.create(data.user)
             self.send "login", newUser
           self.resetName()
         )

@@ -32,8 +32,6 @@ function loadSocketHandlers (socketHandlers) {
   };
 };
 
-module.exports = function (socketHandlers) {
-  return function (io) {
-    io.sockets.on('connection', loadSocketHandlers(socketHandlers));
-  };
-}(socketHandlers);
+module.exports = function (io) {
+  io.sockets.on('connection', loadSocketHandlers(socketHandlers));
+};

@@ -22,13 +22,13 @@ helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
   data.buffer.push("<h1>Welcome ");
   hashTypes = {};
   hashContexts = {};
-  data.buffer.push(escapeExpression(helpers._triageMustache.call(depth0, "user.name", {hash:{},contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
-  data.buffer.push("</h1>\n\n<div class=\"btn btn-alert\" ");
+  data.buffer.push(escapeExpression(helpers._triageMustache.call(depth0, "userCon.name", {hash:{},contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
+  data.buffer.push("</h1>\n\n<div class=\"btn btn-alert\" \n  ");
   hashContexts = {'target': depth0};
-  hashTypes = {'target': "STRING"};
-  data.buffer.push(escapeExpression(helpers.action.call(depth0, "logout", {hash:{
-    'target': ("user")
-  },contexts:[depth0],types:["STRING"],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
+  hashTypes = {'target': "ID"};
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "attemptLogout", "userCon.content", "socket", {hash:{
+    'target': ("userCon")
+  },contexts:[depth0,depth0,depth0],types:["STRING","ID","ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
   data.buffer.push(">\n  Logout\n</div>\n\n<div class=\"hero-unit\">\n  <h1>Idea Box!</h1>\n\n  <form class=\"horizontal\">\n    <fieldset>\n      ");
   hashContexts = {'rows': depth0,'value': depth0};
   hashTypes = {'rows': "INTEGER",'value': "ID"};
@@ -60,16 +60,20 @@ helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
 
 
   data.buffer.push("<h1>Let's log in!</h1>\n<form>\n  <fieldset>\n    ");
-  hashContexts = {'value': depth0};
-  hashTypes = {'value': "ID"};
+  hashContexts = {'value': depth0,'action': depth0,'target': depth0};
+  hashTypes = {'value': "ID",'action': "STRING",'target': "ID"};
   options = {hash:{
-    'value': ("potentialName")
+    'value': ("potentialName"),
+    'action': ("attemptLogin"),
+    'target': ("userCon")
   },contexts:[],types:[],hashContexts:hashContexts,hashTypes:hashTypes,data:data};
   data.buffer.push(escapeExpression(((stack1 = helpers.input || depth0.input),stack1 ? stack1.call(depth0, options) : helperMissing.call(depth0, "input", options))));
-  data.buffer.push("\n    <div class=\"btn\" ");
-  hashTypes = {};
-  hashContexts = {};
-  data.buffer.push(escapeExpression(helpers.action.call(depth0, "attemptLogin", "potentialName", {hash:{},contexts:[depth0,depth0],types:["STRING","ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
+  data.buffer.push("\n    <div class=\"btn\" \n      ");
+  hashContexts = {'target': depth0};
+  hashTypes = {'target': "ID"};
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "attemptLogin", "potentialName", "socket", {hash:{
+    'target': ("userCon")
+  },contexts:[depth0,depth0,depth0],types:["STRING","ID","ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
   data.buffer.push(">\n      Check Name\n    </div>\n  </fieldset>\n</form>\n");
   return buffer;
   

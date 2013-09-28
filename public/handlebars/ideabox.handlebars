@@ -1,6 +1,7 @@
-<h1>Welcome {{user.name}}</h1>
+<h1>Welcome {{userCon.name}}</h1>
 
-<div class="btn btn-alert" {{action "logout" target="user"}}>
+<div class="btn btn-alert" 
+  {{action "attemptLogout" userCon.content socket target=userCon}}>
   Logout
 </div>
 

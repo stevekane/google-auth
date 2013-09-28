@@ -1,8 +1,11 @@
 <h1>Let's log in!</h1>
 <form>
   <fieldset>
-    {{input value=potentialName}}
-    <div class="btn" {{action "attemptLogin" potentialName}}>
+    {{input
+      value=potentialName
+      action="attemptLogin" target=userCon}}
+    <div class="btn" 
+      {{action "attemptLogin" potentialName socket target=userCon}}>
       Check Name
     </div>
   </fieldset>

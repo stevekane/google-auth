@@ -1,5 +1,5 @@
 minispade.register('Application.js', function() {
-var alias, _establishConnection, _handleConnection;
+var alias, enterReconnect, handleConnection;
 
 alias = Ember.computed.alias;
 
@@ -38,6 +38,13 @@ Ideabox.SocketRoute = Ember.Route.extend({
 });
 
 Ideabox.ReconnectRoute = Ember.Route.extend({
+  activate: function() {
+    var connected;
+    connected = this.controllerFor("socket").get('connected');
+    if (connected) {
+      return this.transitionTo("login");
+    }
+  },
   actions: {
     willTransition: function(transition) {
       var connected;
@@ -55,47 +62,59 @@ Ideabox.IndexRoute = Ideabox.SocketRoute.extend({
   }
 });
 
-Ideabox.LoginRoute = Ideabox.SocketRoute.extend({
-  actions: {
-    login: function(user) {
-      this.controllerFor("user").set("content", user);
-      return this.transitionTo("ideabox");
-    }
-  }
-});
+Ideabox.LoginRoute = Ideabox.SocketRoute.extend();
 
-Ideabox.IdeaboxRoute = Ideabox.SocketRoute.extend(Ideabox.AuthRoute, {
-  test: "whatever"
-});
+Ideabox.IdeaboxRoute = Ideabox.SocketRoute.extend(Ideabox.AuthRoute, {});
 
 Ideabox.ApplicationController = Ember.Controller.extend({
   needs: ['socket', 'user'],
   socket: alias("controllers.socket.socket"),
-  userCon: alias("controllers.user"),
   init: function() {
     this._super.apply(this, arguments);
     return this.get('controllers.socket');
-  },
+  }
+});
+
+Ideabox.UserController = Ember.ObjectController.extend({
   actions: {
-    logout: function() {
-      var socket, userCon;
-      userCon = this.get("userCon");
-      socket = this.get("socket");
-      return this.transitionTo("login");
+    attemptLogin: function(name, socket) {
+      var self;
+      self = this;
+      return socket.emit("login", name, function(error, data) {
+        var newUser;
+        if (error) {
+          alert(error);
+          return resetName();
+        } else {
+          newUser = Ember.Object.create(data.user);
+          self.set("content", newUser);
+          return self.transitionToRoute("ideabox");
+        }
+      });
+    },
+    attemptLogout: function(user, socket) {
+      var self;
+      self = this;
+      return socket.emit('logout', user.username, function(error, data) {
+        if (error) {
+          return alert(error);
+        } else {
+          self.set("content", null);
+          return self.transitionToRoute("login");
+        }
+      });
     }
   }
 });
 
-Ideabox.UserController = Ember.ObjectController.extend();
-
-_establishConnection = function(context) {
+enterReconnect = function(context) {
   return function() {
     context.set("connected", false);
     return context.transitionToRoute("reconnect");
   };
 };
 
-_handleConnection = function(context) {
+handleConnection = function(context) {
   return function() {
     context.set("connected", true);
     return context.transitionToRoute("login");
@@ -108,43 +127,23 @@ Ideabox.SocketController = Ember.Controller.extend({
   init: function() {
     var self, socket;
     this._super.apply(this, arguments);
-    socket = this.get("socket");
     self = this;
-    socket = io.connect("//localhost:3000").on("connect", _handleConnection(self)).on("disconnect", _establishConnection(self)).on("error", _establishConnection(self)).on("connect_failed", _establishConnection(self));
+    socket = io.connect("//localhost:3000").on("connect", handleConnection(self)).on("disconnect", enterReconnect(self)).on("error", enterReconnect(self)).on("connect_failed", enterReconnect(self));
     return this.set("socket", socket);
   }
 });
 
 Ideabox.LoginController = Ember.Controller.extend({
-  needs: ['socket'],
+  needs: ['user', 'socket'],
+  userCon: alias("controllers.user"),
   socket: alias("controllers.socket.socket"),
-  actions: {
-    attemptLogin: function(name) {
-      var self, socket;
-      socket = this.get("socket");
-      self = this;
-      return socket.emit("login", name, function(error, data) {
-        var newUser;
-        if (error) {
-          alert(error);
-          resetName();
-        } else {
-          newUser = Ember.Object.create(data.user);
-          self.send("login", newUser);
-        }
-        return self.resetName();
-      });
-    }
-  },
-  potentialName: "",
-  resetName: function() {
-    return this.set("potentialName", "");
-  }
+  potentialName: ""
 });
 
 Ideabox.IdeaboxController = Ember.Controller.extend({
-  needs: ['user'],
-  user: alias("controllers.user"),
+  needs: ['user', 'socket', 'login'],
+  userCon: alias("controllers.user"),
+  socket: alias("controllers.socket.socket"),
   killRatings: [1, 2, 3, 4, 5],
   killValue: null,
   resetKillValue: function() {

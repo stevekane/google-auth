@@ -1,7 +1,5 @@
 var http = require('http')
-  , fs = require('fs')
   , express = require('express')
-  , Handlebars = require('handlebars')
   , app = express()
   , server = http.createServer(app)
   , dirname = __dirname;

@@ -1,17 +1,39 @@
 var http = require('http')
+  , fs = require('fs')
   , express = require('express')
+  , Handlebars = require('handlebars')
   , app = express()
-  , configureApp = require('./app/config/appconfig.js')
-  , configureSockets = require('./app/config/socketconfig.js')
-  , loadSocketHandlers = require('./app/routes/sockethandlers.js')
-  , loadRoutes = require('./app/routes/routehandlers.js')
   , server = http.createServer(app)
-  , io = require('socket.io').listen(server)
   , dirname = __dirname;
 
-configureApp(app, {secret: "mysecret", port: 3000, dirname: dirname});
-loadRoutes(app, {dirname: dirname});
-configureSockets(io);
-loadSocketHandlers(io);
+var indexTemplateString = fs.readFileSync('templates/index.handlebars').toString()
+  , indexTemplate = Handlebars.compile(indexTemplateString)
+  , templates = {};
+
+templates['index'] = indexTemplate;
+
+function configureApp (app, options) {
+  app.set('port', process.env.PORT || options.port)
+    .use(express.favicon())
+    .use(express.logger('dev'))
+    .use(express.cookieParser())
+    .use(express.bodyParser())
+    .use(express.methodOverride())
+    .use(express.session({secret: options.secret}))
+    .use(express.static(options.dirname));
+  return app;
+}
+
+function configureRoutes (app, templates, options) {
+  var index = templates['index'];
+
+  app.get('/', function (req, res ) {
+    res.send(index({intro: "This text was rendered on the server"}));
+  });
+  return app;
+}
+
+configureApp(app, {port: 3000, dirname: dirname, secret: "dat sekrit"});
+configureRoutes(app, templates, {dirname: dirname});
 
 server.listen(app.get('port'));

@@ -7,7 +7,11 @@
     "express": "~3.3.4",
     "socket.io": "~0.9.16",
     "node-uuid": "~1.4.1",
-    "lodash": "~2.1.0"
+    "lodash": "~2.1.0",
+    "handlebars": "~1.0.12",
+    "q": "~0.9.7",
+    "wu": "~0.1.8",
+    "async": "~0.2.9"
   },
   "devDependencies": {
     "grunt": "~0.4.1",
@@ -20,7 +24,8 @@
     "grunt-ember-templates": "~0.4.10",
     "grunt-emblem": "~0.1.0",
     "grunt-contrib-connect": "~0.3.0",
-    "grunt-open": "~0.2.2"
+    "grunt-open": "~0.2.2",
+    "grunt-contrib-handlebars": "~0.5.11"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

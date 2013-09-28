@@ -26,17 +26,6 @@ module.exports = (grunt) ->
     #output files
     distDir: "public/dist"
 
-    #MODULE SYSTEM BUILD STEP
-    minispade:
-      options:
-        renameRequire: true
-        useStrict: false
-        prefixToRemove: '<%= compiledJS %>'+'/'
-      files:
-        src: ['<%= compiledJS %>/**/*.js']
-        dest: '<%= distDir %>/<%= srcJS %>'
-
-
     sass:
       dist:
         options:
@@ -91,7 +80,6 @@ module.exports = (grunt) ->
         options:
           livereload: true
 
-  grunt.loadNpmTasks('grunt-minispade')
   grunt.loadNpmTasks('grunt-contrib-sass')
   grunt.loadNpmTasks('grunt-ember-templates')
   grunt.loadNpmTasks('grunt-contrib-watch')
@@ -100,7 +88,6 @@ module.exports = (grunt) ->
   grunt.registerTask('default',
     [
       'coffee',
-      'minispade',
       'emberTemplates',
       'sass',
       'connect',
@@ -111,7 +98,6 @@ module.exports = (grunt) ->
 
   grunt.registerTask('noserver',
     [
-      'minispade',
       'emberTemplates',
       'sass',
       'watch'

@@ -6,12 +6,13 @@ var http = require('http')
   , server = http.createServer(app)
   , dirname = __dirname;
 
-var indexTemplateString = fs.readFileSync('templates/index.handlebars').toString()
-  , indexTemplate = Handlebars.compile(indexTemplateString)
-  , templates = {};
+var templates = {
+  login: dirname + "/login.html",
+  app: dirname + "/app.html"
+};
 
-templates['index'] = indexTemplate;
-
+//takes in the app object and options and configures the
+//app object
 function configureApp (app, options) {
   app.set('port', process.env.PORT || options.port)
     .use(express.favicon())
@@ -24,11 +25,23 @@ function configureApp (app, options) {
   return app;
 }
 
+//takes in app, templates, and options and mutates adds
+//route handlers to the app object
 function configureRoutes (app, templates, options) {
-  var index = templates['index'];
+  app.get('/', function (req, res) {
+    res.sendfile(templates.login);
+  });
 
-  app.get('/', function (req, res ) {
-    res.send(index({intro: "This text was rendered on the server"}));
+  //TODO: THIS SHOULD CALL OUT TO GOOGLE AND CONFIRM LOGIN
+  //BEFORE SAVING A TOKEN AND SENDING THE NEW FILE DOWN 
+  //TO THE CLIENT VIA A REDIRECT
+  app.get('/auth/google', function (req, res) {
+    res.redirect('/app');
+  });
+
+  //TODO: An Auth-protected route should go here for the actual app
+  app.get('/app', function (req, res) {
+    res.sendfile(templates.app);
   });
   return app;
 }

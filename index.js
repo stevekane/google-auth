@@ -8,6 +8,10 @@ var http = require('http')
   , dirname = __dirname
   , GoogleStrategy = require('passport-google').Strategy;  
 
+var passportStrategies = {
+  GoogleStrategy: GoogleStrategy
+};
+
 var APP_CONFIG = {
   port: 3000,
   dirname: dirname,
@@ -43,22 +47,8 @@ function configureApp (app, express, options) {
 }
 
 //configure passport.  Requires User constructor and app object
-function configurePassport (app, User) {
-  //Test serialize / deserialize, TODO: write these for real                                    
-  passport.serializeUser(function(user, done) {
-    //serialize by user id
-    done(null, user)
-  });
-                    
-  passport.deserializeUser(function (id, done) {
-    var user = {
-      id: id, 
-      email:'test',
-      password:'pass'
-    };
-    done(null, user);
-  })                  
-
+function configurePassport (passport, User, strategies) {
+  var GoogleStrategy = strategies.GoogleStrategy; 
   var GOOGLE_CONFIG = {
     returnURL: 'http://localhost:3000/auth/google/return',
     realm: 'http://localhost:3000'
@@ -76,8 +66,23 @@ function configurePassport (app, User) {
     return done(null, user);
   };
 
-  var googleStrat = new GoogleStrategy(GOOGLE_CONFIG, verifyGoogleLogin);
-  passport.use(googleStrat);
+  passport.use(new GoogleStrategy(GOOGLE_CONFIG, verifyGoogleLogin));
+
+  //Test serialize / deserialize, TODO: write these for real                                    
+  passport.serializeUser(function(user, done) {
+    //serialize by user id
+    done(null, user)
+  });
+                    
+  passport.deserializeUser(function (id, done) {
+    var user = {
+      id: id, 
+      email:'test',
+      password:'pass'
+    };
+    done(null, user);
+  })                  
+
 };
 
 //takes in app, templates, and options and mutates adds
@@ -110,8 +115,8 @@ function configureRoutes (app, templates, options) {
 
 //we attach passport instance to app object as it is "globalish"
 app.set('passport', passport);
+configurePassport(passport, User, passportStrategies);
 configureApp(app, express, APP_CONFIG);
-configurePassport(app, User);
 configureRoutes(app, templates);
 
 server.listen(app.get('port'), function() {

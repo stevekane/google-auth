@@ -13,7 +13,8 @@
     "wu": "~0.1.8",
     "async": "~0.2.9",
     "passport": "~0.1.17",
-    "passport-google": "~0.3.0"
+    "passport-google": "~0.3.0",
+    "passport-local": "~0.1.6"
   },
   "devDependencies": {
     "grunt": "~0.4.1",

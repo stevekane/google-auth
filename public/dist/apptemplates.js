@@ -4,6 +4,6 @@ helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
   
 
 
-  data.buffer.push("<h2>This text was rendered on the client</h2>\n");
+  data.buffer.push("<h2>This text was rendered on the client</h2>\r\n");
   
 });

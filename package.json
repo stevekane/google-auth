@@ -11,7 +11,9 @@
     "handlebars": "~1.0.12",
     "q": "~0.9.7",
     "wu": "~0.1.8",
-    "async": "~0.2.9"
+    "async": "~0.2.9",
+    "passport": "~0.1.17",
+    "passport-google": "~0.3.0"
   },
   "devDependencies": {
     "grunt": "~0.4.1",

@@ -1,22 +1,34 @@
 var http = require('http')
   , express = require('express')
-  , app = express()
   , uuid = require('node-uuid')
+  , passport = require('passport')
+  , _ = require('lodash')
+  , app = express()
   , server = http.createServer(app)
-  , dirname = __dirname;
-
-var passport = require('passport')
+  , dirname = __dirname
   , GoogleStrategy = require('passport-google').Strategy;  
-  
 
+var APP_CONFIG = {
+  port: 3000,
+  dirname: dirname,
+  secret: "dat sekrit"
+};
+
+//Very basic User Model
+function User (hash) {
+  _.extend(this, hash);
+  this.uuid = uuid.v4();
+  return this;
+};
+
+//Templates (currently static HTML)
 var templates = {
   login: dirname + "/login.html",
   app: dirname + "/app.html"
 };
 
-//takes in the app object and options and configures the
-//app object
-function configureApp (app, options) {
+//configures app object
+function configureApp (app, express, options) {
   app.set('port', process.env.PORT || options.port)
     .use(express.favicon())
     .use(express.logger('dev'))
@@ -30,67 +42,78 @@ function configureApp (app, options) {
   return app;
 }
 
-configureApp(app, {port: 3000, dirname: dirname, secret: "dat sekrit"});
-configureRoutes(app, templates, {dirname: dirname});
+//configure passport.  Requires User constructor and app object
+function configurePassport (app, User) {
+  //Test serialize / deserialize, TODO: write these for real                                    
+  passport.serializeUser(function(user, done) {
+    //serialize by user id
+    done(null, user)
+  });
+                    
+  passport.deserializeUser(function (id, done) {
+    var user = {
+      id: id, 
+      email:'test',
+      password:'pass'
+    };
+    done(null, user);
+  })                  
 
-function User () {
-  this.uuid = uuid.v4();
+  var GOOGLE_CONFIG = {
+    returnURL: 'http://localhost:3000/auth/google/return',
+    realm: 'http://localhost:3000'
+  };
+
+  //This strat is not quite right yet I think, since it makes a new user everytime
+  //"works" for initial authorization, but not for protecting other endpoints like /app                                    
+  function verifyGoogleLogin (identifier, profile, done) {
+    var user = new User({
+      name: profile.displayName,
+      email: profile.emails[0].value,
+      identifier: identifier
+    });
+    console.log("USER: ", user);
+    return done(null, user);
+  };
+
+  var googleStrat = new GoogleStrategy(GOOGLE_CONFIG, verifyGoogleLogin);
+  passport.use(googleStrat);
 };
 
 //takes in app, templates, and options and mutates adds
 //route handlers to the app object
 function configureRoutes (app, templates, options) {
+  var passport = app.get('passport');
+  
   app.get('/', function (req, res) {
     res.sendfile(templates.login);
   });
-}
 
-//Hit this page to start the Google Auth process  
-app.get('/auth/google', passport.authenticate('google'));
-
-// // Google will redirect the user to this URL after authentication.  Finish
-// // the process by verifying the assertion.  If valid, the user will be
-// // logged in.  Otherwise, authentication has failed.
-app.get('/auth/google/return', 
-  passport.authenticate('google', { successRedirect: '/app',
-                                    failureRedirect: '/login' }));
-
-//Test serialize / deserialize, TODO: write these for real                                    
-passport.serializeUser(function(user, done) {
-    //serialize by user id
-    done(null, user)
-});
-                  
-passport.deserializeUser(function(id, done) {
-    var user = {id: id, email:'test', password:'pass'};
-    done(null, user);
-})                  
-
-
-//This strat is not quite right yet I think, since it makes a new user everytime
-// "works" for initial authorization, but not for protecting other endpoints like /app                                    
-passport.use(new GoogleStrategy({
-    returnURL: 'http://localhost:3000/auth/google/return',
-    realm: 'http://localhost:3000'
-  },
-  function(identifier, profile, done) {
-    
-    user = new User();
-    user.name = profile.displayName
-    user.email = profile.emails[0].value 
-    user.identifier = identifier;
-    
-    console.log("USER: ", user);
-    return done(null,user);
-    
-  }
-));
-
-
-//should work with passport.authenticate('google') once the GoogleStrategy is written correctly
- app.get('/app', function (req, res) {
+  //should work with passport.authenticate('google') once the GoogleStrategy is written correctly
+  app.get('/app', function (req, res) {
     res.sendfile(templates.app);
   });
 
+  //Hit this page to start the Google Auth process  
+  app.get('/auth/google', passport.authenticate('google'));
 
-server.listen(app.get('port'), function(){console.log("CONNECTED ON", app.get('port'))});
+  /*
+  Google will redirect the user to this URL after authentication.  Finish
+  the process by verifying the assertion.  If valid, the user will be
+  logged in.  Otherwise, authentication has failed.
+  */
+  app.get('/auth/google/return', passport.authenticate('google', {
+    successRedirect: '/app',
+    failureRedirect: '/login' 
+  }));
+}
+
+//we attach passport instance to app object as it is "globalish"
+app.set('passport', passport);
+configureApp(app, express, APP_CONFIG);
+configurePassport(app, User);
+configureRoutes(app, templates);
+
+server.listen(app.get('port'), function() {
+  console.log("CONNECTED ON", app.get('port'))
+});

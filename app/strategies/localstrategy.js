@@ -6,7 +6,9 @@ function configureLocalStrategy (passport, LocalStrategy, DB) {
   }
   
   function verifyLocalLogin (username, password, done) {
+    console.log("username:", username, "password:", password);
     DB.find('User', 'users', 'username', username, function (err, user) {
+      console.log("Found User: ", user);
       if (err) { done(err); } 
       if (user) {
         if (passwordMatches(user.password, password)) {

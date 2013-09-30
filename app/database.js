@@ -10,7 +10,7 @@ function Database (models, tables) {
 //utility function used in "find" and other high order functions
 function findByKVPair (key, value) {
   return function (model) {
-    return model[keyName] === value; 
+    return model[key] === value; 
   }
 }
 
@@ -55,7 +55,7 @@ Database.prototype.find = function (modelName, tableName, keyName, value, callba
     , existingModel = (_.find(models, findMatchingModel));
 
   var model = (existingModel) ? existingModel : null;
-  callback(model, null);
+  callback(null, model);
 };
 
 //Returns null if no model is found with provided id

@@ -38,6 +38,22 @@ var tables = {
 
 var DB = new Database(models, tables);
 
+//BEGIN - FOR DEBUG
+var seedUser = new User({
+  username: "test",
+  password: "password"
+});
+
+DB.users.push(seedUser);
+
+var seededUser = _.find(DB.users, function (user) {
+  return user.username === "test";
+});
+
+console.log("seeded user is ", seededUser);
+//END - FOR DEBUG
+
+
 configureApp(app, express, passport, APP_CONFIG);
 configureLocalStrategy(passport, LocalStrategy, DB);
 //configureGoogleStrategy(passport, GoogleStrategy, DB);

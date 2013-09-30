@@ -4,10 +4,9 @@ function configureLocalRoutes (app, passport, templates, options) {
     failureRedirect: "/"
   };
   
-  var auth = passport.authenticate('local');
-  var redirect = passport.authenticate('google', localRedirects);
+  var redirect = passport.authenticate('local', localRedirects);
 
-  app.post('/login', passport.authenticate('local', redirect));
+  app.post('/login', redirect);
   return app;
 }
 

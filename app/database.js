@@ -33,7 +33,8 @@ Database.prototype.findOrCreate = function (modelName, tableName, keyName, value
     , existingModel = (_.find(models, findMatchingModel));
 
   var model = (existingModel) ? existingModel : new Constructor({keyName: value});
-  callback(model, null);
+  models.push(model);
+  callback(null, model);
 };
 
 //Returns null if no model is found with provided k/v pair
@@ -77,7 +78,7 @@ Database.prototype.findById = function (modelName, tableName, id, callback) {
     , existingModel = (_.find(models, findMatchingModel));
 
   var model = (existingModel) ? existingModel : null;
-  callback(model, null);
+  callback(null, model);
 };
 
 //Very basic User Model

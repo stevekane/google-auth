@@ -13,8 +13,10 @@ function configureLocalStrategy (passport, LocalStrategy, DB) {
       if (user) {
         if (passwordMatches(user.password, password)) {
           done(null, user); 
+          return;
         } else {
           done(null, false, {message: 'wrong password'}); 
+          return;
         }
       } else {
         done(null, false, {message: "no user found by that name"}); 

@@ -46,12 +46,16 @@ var seedUser = new User({
 
 DB.users.push(seedUser);
 
-var seededUser = _.find(DB.users, function (user) {
-  return user.username === "test";
+passport.serializeUser(function(user, done) {
+  done(null, user.id);
 });
 
-console.log("seeded user is ", seededUser);
-//END - FOR DEBUG
+passport.deserializeUser(function(id, done) {
+  DB.findById("User", "users", id, function (err, user) {
+    console.log('ds fired', id);
+    done(err, user);
+  });
+});
 
 
 configureApp(app, express, passport, APP_CONFIG);

@@ -1,10 +1,9 @@
 function configureRoutes (app, passport, templates, options) {
-  var routeRedirects = {
-    failureRedirect: '/login'
-  };
-  //var localAuth = passport.authenticate('local');
-  var localAuth = passport.authenticate('local', routeRedirects);
-  
+  function verifyAuth (req, res, next) {
+    if (req.isAuthenticated()) { return next(); }
+    res.redirect('/login');
+  }
+
   app.get('/', function (req, res) {
     res.redirect('/login'); 
   });
@@ -13,8 +12,7 @@ function configureRoutes (app, passport, templates, options) {
     res.sendfile(templates.login);
   });
 
-  app.get('/app', localAuth, function (req, res) {
-    console.log("App Route hit");
+  app.get('/app', verifyAuth, function (req, res) {
     res.sendfile(templates.app);
   });
 }

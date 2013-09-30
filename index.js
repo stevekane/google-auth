@@ -52,7 +52,6 @@ passport.serializeUser(function(user, done) {
 
 passport.deserializeUser(function(id, done) {
   DB.findById("User", "users", id, function (err, user) {
-    console.log('ds fired', id);
     done(err, user);
   });
 });

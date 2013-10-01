@@ -63,10 +63,6 @@ App.KaneFolderComponent = Ember.Component.extend({
 
   isExpanded: false,
 
-  name: alias("folder.name"),
-
-  children: alias("folder.folders"),
-
   isActive: function () {
     var activeFolder = this.get('tree').get('activeFolder')
       , thisFolder = this.get('folder');

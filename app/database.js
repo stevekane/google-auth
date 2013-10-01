@@ -17,14 +17,12 @@ function findByKVPair (key, value) {
 Database.prototype.findOrCreate = function (modelName, tableName, keyName, value, callback) {
   //if this isnt a valid tableName, return early with an error
   if (!_.has(this, tableName)) {
-    callback(tableName + "is not a field in the database", null);
-    return;
+    return callback(tableName + "is not a field in the database", null);
   }
 
   //if this isnt a valid modelName, return early with error
   if (!_.has(this, modelName)) {
-    callback(modelName + "is not a model in the database", null);
-    return;
+    return callback(modelName + "is not a model in the database", null);
   }
   
   var models = this[tableName]

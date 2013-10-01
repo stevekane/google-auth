@@ -1,0 +1,7 @@
+<h2>Active Folder is: {{activeFolder.name}}</h2>
+
+<ul>
+{{#each folder in topLevelFolders}}
+  <li>{{kane-folder folder=folder tree=this}}</li>
+{{/each}}
+</ul>

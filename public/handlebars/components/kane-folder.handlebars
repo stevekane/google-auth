@@ -1,0 +1,14 @@
+<i 
+  {{action "toggleExpanded" on="doubleClick"}}
+  {{bind-attr class="isExpanded:icon-folder-open:icon-folder-close"}}>
+</i>
+<span {{action "setActive" folder}} {{bind-attr class="isActive:label:"}}>
+  {{folder.name}}
+</span>
+<ul>
+{{#if isExpanded}}
+  {{#each folder in folder.folders}}
+    <li>{{kane-folder folder=folder tree=tree}}</li>
+  {{/each}}
+{{/if}}
+</ul>
